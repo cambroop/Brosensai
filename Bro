@@ -1,0 +1,44 @@
+import pandas as pd
+import streamlit as st
+#----------------หัวข้อบนหน้าเว็บ และข้อความอธิบาย---------------
+
+st.markdown(        #style='text-align: center;':   สั่งให้ข้อความทั้งหมดจัดอยู่กึ่งกลางหน้าจอในแนวนอน
+    "<h1 style='text-align: center;'>โปรแกรมคำนวณค่าสถิติ</h1>",    #<h1>...</h1> แท็กสำหรับกำหนดหัวข้อขนาดใหญ่  
+    unsafe_allow_html=True,     #unsafe_allow_html=True     พารามิเตอร์ที่บอกให้ Streamlit ยอมรับและประมวลผลโค้ดภาษา HTML หรือ CSS
+)
+st.markdown(
+    "<p style='text-align: center; color: gray;'>โปรแกรมสามารถรับค่าข้อมูลดิบได้สูงสุด  100  ค่า ( เฉพาะค่าที่เป็นบวก ระหว่าง  1 - 999)</p>",     #<p>...</p>   แท็กสำหรับสร้างย่อหน้าข้อความ    color:... ; เปลี่ยนสีของตัวอักษรให้เป็นสีเทา
+    unsafe_allow_html=True,     
+)
+st.markdown(
+    "<p style='text-align: center; color: gray;'>อัปโหลดไฟล์ข้อมูล (รองรับไฟล์ .txt, .csv, .xlsx)</p>",
+    unsafe_allow_html=True,
+)
+
+#---------------อัพโหลดไฟล์------------
+#   ใช้สำหรับอัพโหลดไฟล์ที่กำหนดไว้ จากผู้ใช้ และดักจับไฟล์ที่มีข้อมูลเกิน 100 ตัว
+files = st.file_uploader(
+      "เลือกไฟล์ข้อมูล (.txt, .csv, .xlsx)", type=["txt", "csv", "xlsx"]
+  )
+if files is not None:   #"ตรวจสอบว่าผู้ใช้อัปโหลดไฟล์เข้ามาแล้วหรือยัง
+  try:      #ใช้ดักจับข้อมูล
+    if files.name.endswith(".csv"):     # (.name) คำสั่งที่ใช้ดึง ชื่อของไฟล์ (.endswith) ตรวจสอบว่าข้อความลงท้ายด้วยคำหรือตัวอักษรที่เรากำหนดไว้
+      filesdata = pd.read_csv(files)    # pd = Pandas ใช้ในการจัดการ วิเคราะห์ และทำความสะอาดข้อมูล โดยเฉพาะข้อมูลในรูปแบบตาราง 
+    elif files.name.endswith(".xlsx"):      #pd.read_()  ทำหน้าที่เปิดและอ่านนามสกุลไฟล์
+      filesdata = pd.read_excel(files)
+    elif files.name.endswith(".txt"):
+      filesdata = pd.read_csv(files, delimiter="\t")    #อ่านไฟล์ข้อความ (.txt) โดยกำหนดให้ตัวอักษรแท็บ (Tab) เป็นตัวแบ่งคอลัมน์ครับ
+
+    #ตรวจสอบว่าข้อมูลในไฟล์ เกิน 100 หรือไม่
+    if len(filesdata) > 100:
+      st.error(    #แสดงการแจ้งเตือน
+          f"❌ไฟล์นี้มี {len(filesdata)} แถว! กรุณาอัพโหลดไฟล์ที่มีจำนวนข้อมูลไม่เกิน"
+          " 100 ค่า❌"
+      )
+    else:
+      st.success(
+          f"✅อัพโหลดสำเร็จ! พบข้อมูลทั้งหมด {len(filesdata)} ตัว✅)"
+      )
+
+  except Exception as e:
+    st.error(f"เกิดข้อผิดพลาดในการอ่านไฟล์: {e}")
