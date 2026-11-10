@@ -71,14 +71,14 @@ if files is not None:   #"ตรวจสอบว่าผู้ใช้อั
 #แสดงผลลัพธ์หน้าเว็บ
         st.markdown(
           "<h3 style='text-align: center;'>📌 ข้อมูลแจกแจงความถี่</h3>",unsafe_allow_html=True,)
-        st.write(f"ค่ามากที่สุด: {max_value}")
-        st.write(f"ค่าน้อยที่สุด: {min_value}")
-        st.write(f"ค่าเฉลี่ย: {mean_value}")
-        st.write(f"ค่ามัธยฐาน: {md_value}")
-        st.write(f"ค่าฐานนิยม: {mode_value}")
-        st.write(f"ค่าเบี่ยงเบนเฉลี่ย: {md_dev}")
-        st.write(f"ค่าส่วนเบี่ยงเบนมาตรฐาน:{sd_val}")
-        st.write(f"ค่าความแปรปรวน:{var_vsl}")
+        st.write(f"ค่ามากที่สุด: {max_value:.2f}")
+        st.write(f"ค่าน้อยที่สุด: {min_value:.2f}")
+        st.write(f"ค่าเฉลี่ย: {mean_value:.2f}")
+        st.write(f"ค่ามัธยฐาน: {md_value:.2f}")
+        st.write(f"ค่าฐานนิยม: {mode_value:.2f}")
+        st.write(f"ค่าเบี่ยงเบนเฉลี่ย: {md_dev:.2f}")
+        st.write(f"ค่าส่วนเบี่ยงเบนมาตรฐาน:{sd_val:.2f}")
+        st.write(f"ค่าความแปรปรวน:{var_vsl:.2f}")
 
         st.markdown("---")
 
@@ -210,12 +210,12 @@ if files is not None:   #"ตรวจสอบว่าผู้ใช้อั
         st.subheader("📊 ผลสรุปการคำนวณค่าสถิติจากตารางแจกแจงความถี่")
         col1, col2 = st.columns(2)
         with col1:
-          st.write(f"- **ค่าเฉลี่ย (Mean):** {mean_freq:.4f}")
-          st.write(f"- **ค่ามัธยฐาน (Md):** {md_freq:.4f}")
-          st.write(f"- **ค่าฐานนิยม (Mo):** {mo_freq:.4f}")
+          st.write(f"- **ค่าเฉลี่ย (Mean):** {mean_freq:.2f}")
+          st.write(f"- **ค่ามัธยฐาน (Md):** {md_freq:.2f}")
+          st.write(f"- **ค่าฐานนิยม (Mo):** {mo_freq:.2f}")
         with col2:
-          st.write(f"- **ส่วนเบี่ยงเบนมาตรฐาน (S):** {sd_freq:.4f}")
-          st.write(f"- **ความแปรปรวน (S^2):** {var_freq:.4f}")
-          st.write(f"- **ความเบี่ยงเบนควอไทล์ (Q.D.):** {qd_freq:.4f}")
+          st.write(f"- **ส่วนเบี่ยงเบนมาตรฐาน (S):** {sd_freq:.2f}")
+          st.write(f"- **ความแปรปรวน (S^2):** {var_freq:.2f}")
+          st.write(f"- **ความเบี่ยงเบนควอไทล์ (Q.D.):** {qd_freq:.2f}")
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการอ่านไฟล์: {e}")
