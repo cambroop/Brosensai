@@ -1,19 +1,36 @@
 import pandas as pd
 import streamlit as st
+import numpy as np
+import math
 #----------------หัวข้อบนหน้าเว็บ และข้อความอธิบาย---------------
 
 st.markdown(        #style='text-align: center;':   สั่งให้ข้อความทั้งหมดจัดอยู่กึ่งกลางหน้าจอในแนวนอน
-    "<h1 style='text-align: center;'>โปรแกรมคำนวณค่าสถิติ</h1>",    #<h1>...</h1> แท็กสำหรับกำหนดหัวข้อขนาดใหญ่  
+    "<h2 style='text-align: center;'>โปรแกรมคำนวณค่าสถิติทั้งหมด</h2>",    #<h1>...</h1> แท็กสำหรับกำหนดหัวข้อขนาดใหญ่  
     unsafe_allow_html=True,     #unsafe_allow_html=True     พารามิเตอร์ที่บอกให้ Streamlit ยอมรับและประมวลผลโค้ดภาษา HTML หรือ CSS
 )
 st.markdown(
-    "<p style='text-align: center; color: gray;'>โปรแกรมสามารถรับค่าข้อมูลดิบได้สูงสุด  100  ค่า ( เฉพาะค่าที่เป็นบวก ระหว่าง  1 - 999)</p>",     #<p>...</p>   แท็กสำหรับสร้างย่อหน้าข้อความ    color:... ; เปลี่ยนสีของตัวอักษรให้เป็นสีเทา
+    "<h4 style='text-align: center; '>(เฉพาะค่าที่เป็นบวก ระหว่าง  1 - 999)</h4>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<h5 style='text-align: center; color:red;'>(รับค่าข้อมูลดิบสูงสุด 100 ค่า)</h5>", #<p>...</p>   แท็กสำหรับสร้างย่อหน้าข้อความ    color:... ; เปลี่ยนสีของตัวอักษรให้เป็นสีเทา
     unsafe_allow_html=True,     
 )
 st.markdown(
-    "<p style='text-align: center; color: gray;'>อัปโหลดไฟล์ข้อมูล (รองรับไฟล์ .txt, .csv, .xlsx)</p>",
+    "<p style='text-align: center; color:red;'>(รองรับไฟล์ .txt, .csv, .xlsx)</p>",
+    unsafe_allow_html=True,     
+)
+st.markdown(
+  """
+    <style>
+    .stButton>button, [data-testid="stFileUploader"] section button {
+        text-transform: uppercase;
+    }
+    </style>
+  """,
     unsafe_allow_html=True,
 )
+
 
 #---------------อัพโหลดไฟล์------------
 #   ใช้สำหรับอัพโหลดไฟล์ที่กำหนดไว้ จากผู้ใช้ และดักจับไฟล์ที่มีข้อมูลเกิน 100 ตัว
@@ -23,22 +40,182 @@ files = st.file_uploader(
 if files is not None:   #"ตรวจสอบว่าผู้ใช้อัปโหลดไฟล์เข้ามาแล้วหรือยัง
   try:      #ใช้ดักจับข้อมูล
     if files.name.endswith(".csv"):     # (.name) คำสั่งที่ใช้ดึง ชื่อของไฟล์ (.endswith) ตรวจสอบว่าข้อความลงท้ายด้วยคำหรือตัวอักษรที่เรากำหนดไว้
-      filesdata = pd.read_csv(files)    # pd = Pandas ใช้ในการจัดการ วิเคราะห์ และทำความสะอาดข้อมูล โดยเฉพาะข้อมูลในรูปแบบตาราง 
-    elif files.name.endswith(".xlsx"):      #pd.read_()  ทำหน้าที่เปิดและอ่านนามสกุลไฟล์
-      filesdata = pd.read_excel(files)
+      filesdata = pd.read_csv(files , header=0)    # pd = Pandas ใช้ในการจัดการ วิเคราะห์ และทำความสะอาดข้อมูล โดยเฉพาะข้อมูลในรูปแบบตาราง 
+    elif files.name.endswith((".xlsx",".xls")):      #pd.read_()  ทำหน้าที่เปิดและอ่านนามสกุลไฟล์
+      filesdata = pd.read_excel(files , header=0)
     elif files.name.endswith(".txt"):
-      filesdata = pd.read_csv(files, delimiter="\t")    #อ่านไฟล์ข้อความ (.txt) โดยกำหนดให้ตัวอักษรแท็บ (Tab) เป็นตัวแบ่งคอลัมน์ครับ
+      filesdata = pd.read_csv(files, delimiter="\t" ,header=0)    #อ่านไฟล์ข้อความ (.txt) โดยกำหนดให้ตัวอักษรแท็บ (Tab) เป็นตัวแบ่งคอลัมน์ครับ
 
-    #ตรวจสอบว่าข้อมูลในไฟล์ เกิน 100 หรือไม่
-    if len(filesdata) > 100:
+    if len(filesdata) > 100:    #ตรวจสอบว่าข้อมูลในไฟล์ เกิน 100 หรือไม่
       st.error(    #แสดงการแจ้งเตือน
           f"❌ไฟล์นี้มี {len(filesdata)} แถว! กรุณาอัพโหลดไฟล์ที่มีจำนวนข้อมูลไม่เกิน"
-          " 100 ค่า❌"
-      )
+          " 100 ค่า❌")
     else:
       st.success(
-          f"✅อัพโหลดสำเร็จ! พบข้อมูลทั้งหมด {len(filesdata)} ตัว✅)"
-      )
+          f"✅อัพโหลดสำเร็จ! พบข้อมูลทั้งหมด {len(filesdata)} ตัว✅)")
+      series_data = pd.to_numeric(filesdata.iloc[:,0], errors='coerce')
+      view_mode = st.radio("เลือกรูปแบบการคำนวณ:",["📌 ข้อมูลไม่แจกแจงความถี่", "📈 ข้อมูลแจกแจงความถี่"],horizontal=True,)
+      if  view_mode == "📌 ข้อมูลไม่แจกแจงความถี่":  #สร้างปุ่มบนหน้าเว็ป
+        max_value = series_data.max()  #หาค่ามากที่สุด
+        min_value = series_data.min()  #หาค่าน้อยที่สุด
+        mean_value = series_data.mean()  #หาค่าเฉลี่ย
+        md_value = series_data.median()  #หาค่ามัธยฐาน
+        mode_value = series_data.mode()[0]  #หาค่าฐานนิยม
+        md_dev = np.sum(np.abs(series_data - mean_value)) / len(series_data)  #หาค่าเบี่ยงเบนเฉลี่ย
+        if len(series_data) > 1:
+          sd_val = np.sqrt(np.sum((series_data - mean_value)**2) / (len(series_data) - 1))  #หาค่าส่วนเบี่ยงเบนมาตรฐาน
+          var_vsl = np.var(np.sum((series_data - mean_value)**2) /(len(series_data) - 1))  #หาค่าความแปรปรวน
+        else:
+          sd_val = 0.0
+          var_vsl = 0.0
+#แสดงผลลัพธ์หน้าเว็บ
+        st.markdown(
+          "<h3 style='text-align: center;'>📌 ข้อมูลแจกแจงความถี่</h3>",unsafe_allow_html=True,)
+        st.write(f"ค่ามากที่สุด: {max_value}")
+        st.write(f"ค่าน้อยที่สุด: {min_value}")
+        st.write(f"ค่าเฉลี่ย: {mean_value}")
+        st.write(f"ค่ามัธยฐาน: {md_value}")
+        st.write(f"ค่าฐานนิยม: {mode_value}")
+        st.write(f"ค่าเบี่ยงเบนเฉลี่ย: {md_dev}")
+        st.write(f"ค่าส่วนเบี่ยงเบนมาตรฐาน:{sd_val}")
+        st.write(f"ค่าความแปรปรวน:{var_vsl}")
 
+        st.markdown("---")
+
+#***************ข้อมูลแจกแจงความถี่********************
+      if view_mode == "📈 ข้อมูลแจกแจงความถี่":
+        st.markdown("### 📈 ผลลัพธ์: ข้อมูลแจกแจงความถี่")
+        #พิสัย (R) = Max - Min
+        max_val = series_data.max()
+        min_val = series_data.min()
+        range_val = max_val - min_val
+        
+        #จำนวนชั้นอยู่ระหว่าง 3 - 15 ชั้น
+        num_classes = st.slider("เลือกจำนวนอันตรภาคชั้น (3 - 15 ชั้น):",min_value=3,max_value=15,value=5,)
+        if range_val == 0:
+          i_width = 1
+        else:
+          i_width = int(np.ceil(range_val / num_classes))
+          if i_width == 0:
+            i_width = 1
+
+        bins = []
+        labels = []
+        start_lower = min_val
+        for c in range(num_classes):
+          lower = start_lower + (c * i_width)
+          upper = lower + i_width - 1
+          bins.append(lower)
+          labels.append(f"{int(lower)} - {int(upper)}")
+        bin_edges = [b for b in bins]
+        bin_edges.append(bins[-1] + i_width)
+        cat_data = pd.cut(
+            series_data,
+            bins=bin_edges,
+            labels=labels,
+            right=True,
+            include_lowest=True,
+        )
+        freq_table = cat_data.value_counts().sort_index().reset_index()
+        freq_table.columns = ["ช่วงคะแนน", "ความถี่ (f)"]
+        freq_table.index = freq_table.index + 1
+        total_n = len(series_data)
+        midpoints = []
+        for l in labels:
+          parts = l.split(" - ")
+          mid = (float(parts[0]) + float(parts[1])) / 2
+          midpoints.append(mid)
+        freq_table["ขีดจำกัดล่าง (Lo)"] = [b - 0.5 for b in bins]
+        freq_table["ขีดจำกัดบน (Ho)"] = [b + i_width - 0.5 for b in bins]
+        freq_table["จุดกลางชั้น (x)"] = midpoints
+        freq_table["ความถี่สะสม (F)"] = freq_table["ความถี่ (f)"].cumsum()
+        freq_table["fx"] = freq_table["ความถี่ (f)"] * freq_table["จุดกลางชั้น (x)"]
+        freq_table["สัดส่วน"] = freq_table["ความถี่ (f)"] / total_n
+        freq_table["ร้อยละ"] = (freq_table["ความถี่ (f)"] / total_n) * 100
+        display_df = freq_table[[
+            "ขีดจำกัดล่าง (Lo)",
+            "ขีดจำกัดบน (Ho)",
+            "จุดกลางชั้น (x)",
+            "ความถี่ (f)",
+            "ความถี่สะสม (F)",
+            "fx",
+            "สัดส่วน",
+            "ร้อยละ",]]
+        display_df.index = freq_table["ช่วงคะแนน"]
+        st.write(
+            f"**พิสัย (R):** {range_val} | **ความกว้างอันตรภาคชั้น (i):**"
+            f" {i_width} | **จำนวนข้อมูลทั้งหมด (N):** {total_n}"
+        )
+        st.dataframe(display_df, width="stretch")
+
+        sum_fx = freq_table["fx"].sum()
+        mean_freq = sum_fx / total_n  # ค่าเฉลี่ย
+        n_half = total_n / 2
+        median_row = freq_table[freq_table["ความถี่สะสม (F)"] >= n_half]
+        if not median_row.empty:
+          med_idx = median_row.index[0]
+          L_med = freq_table.loc[med_idx, "ขีดจำกัดล่าง (Lo)"]
+          F_before = (
+          freq_table.loc[: med_idx - 1, "ความถี่สะสม (F)"].iloc[-1]
+            if med_idx > 1
+            else 0
+            )
+          f_med = freq_table.loc[med_idx, "ความถี่ (f)"]
+          md_freq = (
+          L_med + i_width * ((n_half - F_before) / f_med) if f_med > 0 else mean_freq
+          )
+        else:
+            md_freq = mean_freq
+        
+        max_f_idx = freq_table["ความถี่ (f)"].idxmax()
+        L_mo = freq_table.loc[max_f_idx, "ขีดจำกัดล่าง (Lo)"]
+        f_mo = freq_table.loc[max_f_idx, "ความถี่ (f)"]
+        f_before_mo = (freq_table.loc[max_f_idx - 1, "ความถี่ (f)"] if max_f_idx > 1 else 0
+        ) 
+        f_after_mo = (
+          freq_table.loc[max_f_idx + 1, "ความถี่ (f)"]
+          if max_f_idx < len(freq_table)
+          else 0
+        )
+        
+        d1 = f_mo - f_before_mo
+        d2 = f_mo - f_after_mo
+        mo_freq = L_mo + i_width * (d1 / (d1 + d2)) if (d1 + d2) != 0 else L_mo  
+        sum_fx2 = (freq_table["ความถี่ (f)"] * (freq_table["จุดกลางชั้น (x)"] ** 2)).sum()
+        if total_n > 1:
+          var_freq = (total_n * sum_fx2 - (sum_fx**2)) / (total_n * (total_n - 1))
+          var_freq = max(0.0, var_freq)
+          sd_freq = np.sqrt(var_freq)
+        else:
+          var_freq = 0.0
+          sd_freq = 0.0
+        def get_quartile(q_num):
+          q_pos = (q_num * total_n) / 4
+          q_row = freq_table[freq_table["ความถี่สะสม (F)"] >= q_pos]
+          if q_row.empty:
+            return 0.0
+          q_idx = q_row.index[0]
+          L_q = freq_table.loc[q_idx, "ขีดจำกัดล่าง (Lo)"]
+          F_b_q = (
+          freq_table.loc[: q_idx - 1, "ความถี่สะสม (F)"].iloc[-1]
+          if q_idx > 1
+          else 0
+  )
+          f_q = freq_table.loc[q_idx, "ความถี่ (f)"]
+          return L_q + i_width * ((q_pos - F_b_q) / f_q) if f_q > 0 else L_q
+        q1 = get_quartile(1)
+        q3 = get_quartile(3)
+        qd_freq = (q3 - q1) / 2   
+        st.markdown("---")
+        st.subheader("📊 ผลสรุปการคำนวณค่าสถิติจากตารางแจกแจงความถี่")
+        col1, col2 = st.columns(2)
+        with col1:
+          st.write(f"- **ค่าเฉลี่ย (Mean):** {mean_freq:.4f}")
+          st.write(f"- **ค่ามัธยฐาน (Md):** {md_freq:.4f}")
+          st.write(f"- **ค่าฐานนิยม (Mo):** {mo_freq:.4f}")
+        with col2:
+          st.write(f"- **ส่วนเบี่ยงเบนมาตรฐาน (S):** {sd_freq:.4f}")
+          st.write(f"- **ความแปรปรวน (S^2):** {var_freq:.4f}")
+          st.write(f"- **ความเบี่ยงเบนควอไทล์ (Q.D.):** {qd_freq:.4f}")
   except Exception as e:
     st.error(f"เกิดข้อผิดพลาดในการอ่านไฟล์: {e}")
